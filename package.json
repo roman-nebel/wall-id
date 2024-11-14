@@ -1,0 +1,13 @@
+{
+  "name": "wall-id",
+  "version": "0.1.0",
+  "description": "Query validator for Express",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "Roman Nebel",
+  "license": "MIT"
+}
