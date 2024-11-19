@@ -1,22 +1,40 @@
 function validator(config, data) {
-  console.log(config, data);
-  const error = new Error("This is error");
-  error.status = 400;
-  throw error;
+  const { params = [] } = config;
+  for (const [paramKey, paramValue] of Object.entries(params)) {
+    // Check required parameter
+    if (!(paramKey in data && paramValue?.required)) {
+      throw new Error(`Parameter ${paramKey} is required`);
+    }
+
+    // Check empty value
+    if (!data[paramKey] && paramValue?.notEmpty) {
+      throw new Error(`Parameter ${paramKey} can't be empty`);
+    }
+  }
+  return true;
 }
 
 function expressMiddleware(config) {
   return (req, res, next) => {
+    const { source = "all" } = config;
     try {
-      validator(config, req);
+      const requestData = {
+        query: req?.query,
+        body: req?.body,
+        params: req?.params,
+        all: Object.assign({}, req?.query, req?.body, req?.params),
+      };
+      validator(config, requestData[source]);
       next();
     } catch (error) {
-      const { handleError = false } = config;
-      if (handleError) {
+      const { errorHandler = false } = config;
+      if (typeof errorHandler === "function") {
+        return errorHandler(req, res, next);
+      } else if (errorHandler) {
         next(error);
       } else {
         console.error(error);
-        res.status(400).send(error);
+        res.status(400).send(error?.message || { error: true });
       }
     }
   };
